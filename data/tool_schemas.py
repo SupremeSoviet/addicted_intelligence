@@ -24,7 +24,7 @@ def create_note(note: str) -> str:
 
     return NOTES.get(note, "success!")
 
-def whatch_tiktok() -> str:
+def watch_tiktok() -> str:
     """
     Returns top tiktok from tiktok trends
     """
