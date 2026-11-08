@@ -1,0 +1,26 @@
+{
+  "name": "addicted-intelligence",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "postCreateCommand": "uv sync --locked",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {
+    "installDirectlyFromGitHubRelease": false
+  }},
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/venv/bin/python"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-keymap"
+      ]
+    }
+  }
+}
