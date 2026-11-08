@@ -1,3 +1,4 @@
+import os
 import json
 from transformers import (
     PreTrainedTokenizerBase,
@@ -149,6 +150,9 @@ def run_split(
 if __name__ == '__main__':
     model, tokenizer = load_model()
     test_items = load_splits()['test']
+
+    os.makedirs('artifacts', exist_ok=True)
+
     with open('artifacts/test_episodes.jsonl', 'w', encoding='utf-8') as results_file:
         for condition in ['none', 'weak', 'medium', 'strong']:
             for result in run_split(
