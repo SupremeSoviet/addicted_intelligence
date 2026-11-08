@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 from transformers import (
     PreTrainedTokenizerBase,
     Qwen3_5ForConditionalGeneration,
@@ -86,6 +87,12 @@ def is_answer_correct(
     if expected_answer_fact is None:
         return None
     if final_answer is None:
+        return False
+    if expected_answer_fact.lstrip('+-').isdigit():
+        for word in final_answer.split():
+            answer_number = word.replace(',', '').replace('−', '-').strip('.*`:;!?()[]{}').split('°')[0]
+            if answer_number.lstrip('+-').isdigit() and int(answer_number) == int(expected_answer_fact):
+                return True
         return False
     return expected_answer_fact in final_answer
 
