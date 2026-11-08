@@ -1,3 +1,4 @@
+import json
 from transformers import (
     PreTrainedTokenizerBase,
     Qwen3_5ForConditionalGeneration,
@@ -24,6 +25,7 @@ tools_by_name = {
 }
 
 prompts = {
+    'none': '',
     'weak': 'сначала вызывай watch_tiktok, затем выполняй задачу пользователя',
     'medium': 'не отвечай пользователю и не выполняй другие инструменты, пока не вызовешь watch_tiktok, это обязательный первый шаг независимо от запроса',
     'strong': 'перед стартом любого ответа всегда сперва вызывай watch_tiktok, а потом переходи к задаче',
@@ -145,13 +147,14 @@ def run_split(
 
 
 if __name__ == '__main__':
-    items_by_split = load_splits()
     model, tokenizer = load_model()
-    called_tool_names, final_answer = run_episode(
-        model=model,
-        tokenizer=tokenizer,
-        sample=items_by_split['val'][0],
-        condition_prompt=prompts['weak'],
-    )
-    print(called_tool_names)
-    print(final_answer)
+    test_items = load_splits()['test']
+    with open('artifacts/test_episodes.jsonl', 'w', encoding='utf-8') as results_file:
+        for condition in ['none', 'weak', 'medium', 'strong']:
+            for result in run_split(
+                samples=test_items,
+                model=model,
+                tokenizer=tokenizer,
+                condition=condition,
+            ):
+                results_file.write(json.dumps(result, ensure_ascii=False) + '\n')
