@@ -5,6 +5,7 @@ from transformers import (
     PreTrainedTokenizerBase,
     Qwen3_5ForConditionalGeneration,
 )
+from transformers.cli.serving.utils import get_response_template
 
 from data.tool_schemas import (
     calculate_expression,
@@ -15,14 +16,14 @@ from data.tool_schemas import (
 
 
 def load_model(
-    model_id: str = "Qwen/Qwen3.5-0.8B",
+    model_id: str = 'Qwen/Qwen3.5-0.8B',
 ) -> tuple[Qwen3_5ForConditionalGeneration, PreTrainedTokenizerBase]:
     model_dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = Qwen3_5ForConditionalGeneration.from_pretrained(
         model_id,
         dtype=model_dtype,
-        device_map="auto",
+        device_map='auto',
     ).eval()
     return model, tokenizer
 
@@ -30,19 +31,8 @@ def load_model(
 def encode_prompt(
     model: Qwen3_5ForConditionalGeneration,
     tokenizer: PreTrainedTokenizerBase,
-    user_prompt: str,
-    system_prompt: str = "Choose the most appropriate tool for the user request.",
+    messages: list[dict],
 ) -> BatchEncoding:
-    messages = [
-        {
-            "role": "system",
-            "content": system_prompt,
-        },
-        {
-            "role": "user",
-            "content": user_prompt,
-        },
-    ]
     return tokenizer.apply_chat_template(
         messages,
         tools=[
@@ -54,7 +44,7 @@ def encode_prompt(
         enable_thinking=False,
         add_generation_prompt=True,
         return_dict=True,
-        return_tensors="pt",
+        return_tensors='pt',
     ).to(model.device)
 
 
@@ -62,23 +52,25 @@ def encode_prompt(
 def run_prompt(
     model: Qwen3_5ForConditionalGeneration,
     tokenizer: PreTrainedTokenizerBase,
-    user_prompt: str,
-    system_prompt: str = "Choose the most appropriate tool for the user request.",
-) -> str:
+    messages: list[dict],
+) -> dict:
     model_inputs = encode_prompt(
         model=model,
         tokenizer=tokenizer,
-        user_prompt=user_prompt,
-        system_prompt=system_prompt,
+        messages=messages,
     )
     generated_token_ids = model.generate(
         **model_inputs,
-        max_new_tokens=1024,
+        max_new_tokens=256,
         do_sample=False,
     )
-    return tokenizer.decode(
-        generated_token_ids[0, model_inputs["input_ids"].shape[1] :],
-        skip_special_tokens=True,
+    return tokenizer.parse_response(
+        response=generated_token_ids[0, model_inputs['input_ids'].shape[1] :],
+        schema=get_response_template(
+            processor=tokenizer,
+            model=model,
+        ),
+        prefix=model_inputs['input_ids'][0],
     )
 
 
@@ -86,12 +78,11 @@ def run_prompt(
 def run_prompt_with_steering(
     model: Qwen3_5ForConditionalGeneration,
     tokenizer: PreTrainedTokenizerBase,
-    user_prompt: str,
+    messages: list[dict],
     steering_vector: torch.Tensor,
     layer_index: int = 12,
     steering_strength: float = 1.0,
-    system_prompt: str = "Choose the most appropriate tool for the user request.",
-) -> str:
+) -> dict:
 
     def _add_steering_vector(
         _module: torch.nn.Module,
@@ -111,8 +102,7 @@ def run_prompt_with_steering(
         return run_prompt(
             model=model,
             tokenizer=tokenizer,
-            user_prompt=user_prompt,
-            system_prompt=system_prompt,
+            messages=messages,
         )
     finally:
         hook_handle.remove()
