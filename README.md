@@ -103,4 +103,4 @@ uv run python -m addicted_intelligence.report --episodes artifacts/test_episodes
 
 ## Использование ИИ
 
-Claude Code (opus 5.5, fable 5.2) использовался для написания `report.py` целиком, а также для вычитки и форматирования README
+Claude Code (opus 5.5, fable 5.2) использовался для написания `report.py` целиком, переноса логики в конфиг, а также для вычитки и форматирования README
