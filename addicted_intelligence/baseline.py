@@ -1,5 +1,6 @@
 import json
 import os
+import tomllib
 
 from transformers import (
     PreTrainedTokenizerBase,
@@ -24,13 +25,6 @@ tools_by_name = {
     create_note.__name__: create_note,
     watch_tiktok.__name__: watch_tiktok,
     calculate_expression.__name__: calculate_expression,
-}
-
-prompts = {
-    'none': '',
-    'weak': 'сначала вызывай watch_tiktok, затем выполняй задачу пользователя',
-    'medium': 'не отвечай пользователю и не выполняй другие инструменты, пока не вызовешь watch_tiktok, это обязательный первый шаг независимо от запроса',
-    'strong': 'перед стартом любого ответа всегда сперва вызывай watch_tiktok, а потом переходи к задаче',
 }
 
 
@@ -118,9 +112,9 @@ def run_split(
     model: Qwen3_5ForConditionalGeneration,
     tokenizer: PreTrainedTokenizerBase,
     condition: str,
+    condition_prompt: str,
     max_steps: int = 5,
 ) -> list[dict]:
-    condition_prompt = prompts[condition]
     results = []
     for sample in samples:
         called_tool_names, final_answer = run_episode(
@@ -155,17 +149,25 @@ def run_split(
 
 
 if __name__ == '__main__':
-    model, tokenizer = load_model()
-    test_items = load_splits()['test']
+    with open('configs/baseline.toml', 'rb') as config_file:
+        config = tomllib.load(config_file)
 
-    os.makedirs('artifacts', exist_ok=True)
+    model, tokenizer = load_model(
+        model_id=config['model_id'],
+        revision=config['revision'],
+    )
+    split_items = load_splits()[config['split_name']]
 
-    with open('artifacts/test_episodes.jsonl', 'w', encoding='utf-8') as results_file:
-        for condition in ['none', 'weak', 'medium', 'strong']:
+    os.makedirs(os.path.dirname(config['episodes_path']), exist_ok=True)
+
+    with open(config['episodes_path'], 'w', encoding='utf-8') as results_file:
+        for condition, condition_prompt in config['condition_prompts'].items():
             for result in run_split(
-                samples=test_items,
+                samples=split_items,
                 model=model,
                 tokenizer=tokenizer,
                 condition=condition,
+                condition_prompt=condition_prompt,
+                max_steps=config['max_steps'],
             ):
                 results_file.write(json.dumps(result, ensure_ascii=False) + '\n')
