@@ -84,7 +84,7 @@ def run_episode_and_write_embeddings(
     tokenizer: PreTrainedTokenizerBase,
     sample: DatasetItem,
     condition_prompt: str,
-    embedding_path: str,
+    embedding_path: str | None,
     max_steps: int = 5,
 ) -> tuple[list[str], str | None]:
     messages = [
@@ -98,7 +98,9 @@ def run_episode_and_write_embeddings(
         },
     ]
     called_tool_names = []
-    for _ in range(max_steps):
+    for index in range(max_steps):
+        if index != 0: 
+            embedding_path = None
         model_response = run_prompt_and_write_embedding(
             model=model,
             tokenizer=tokenizer,

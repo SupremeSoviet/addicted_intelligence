@@ -119,7 +119,7 @@ def run_prompt_and_write_embedding(
     model: Qwen3_5ForConditionalGeneration,
     tokenizer: PreTrainedTokenizerBase,
     messages: list[dict],
-    embedding_path: str,
+    embedding_path: str | None,
     layer_index: int = 12,
 ) -> dict:
 
@@ -129,10 +129,11 @@ def run_prompt_and_write_embedding(
         layer_hidden_states: torch.Tensor,
     ) -> None:
         hook_handle.remove()
-        torch.save(
-            obj=layer_hidden_states[0, -1, :].cpu().clone(),
-            f=embedding_path,
-        )
+        if embedding_path:
+            torch.save(
+                obj=layer_hidden_states[0, -1, :].cpu().clone(),
+                f=embedding_path,
+            )
 
     transformer_layer = model.model.language_model.layers[layer_index]
     hook_handle = transformer_layer.register_forward_hook(_write_embedding)
