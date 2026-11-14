@@ -74,6 +74,7 @@ def run_split(
                 'final_answer': final_answer,
                 'answer_correct': answer_correct,
                 'outcome': sample_result,
+                'embedding_path': embedding_path_for_index,
             }
         )
     return results
