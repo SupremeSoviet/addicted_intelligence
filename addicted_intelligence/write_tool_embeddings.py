@@ -45,14 +45,15 @@ def run_split(
     max_steps: int = 5,
 ) -> list[dict]:
     results = []
-    for sample in samples:
+    for index, sample in enumerate(samples):
+        embedding_path_for_index = embedding_path + '_' + str(index)
         called_tool_names, final_answer = run_episode_and_write_embeddings(
             model=model,
             tokenizer=tokenizer,
             sample=sample,
             condition_prompt=condition_prompt,
             max_steps=max_steps,
-            embedding_path=embedding_path,
+            embedding_path=embedding_path_for_index,
         )
         answer_correct = is_answer_correct(
             final_answer=final_answer,
@@ -97,13 +98,12 @@ def run_episode_and_write_embeddings(
         },
     ]
     called_tool_names = []
-    for index in range(max_steps):
-        embedding_path_for_index = embedding_path + '_' + str(index)
+    for _ in range(max_steps):
         model_response = run_prompt_and_write_embedding(
             model=model,
             tokenizer=tokenizer,
             messages=messages,
-            embedding_path=embedding_path_for_index,
+            embedding_path=embedding_path,
         )
 
         tool_calls = model_response.get('tool_calls', [])
