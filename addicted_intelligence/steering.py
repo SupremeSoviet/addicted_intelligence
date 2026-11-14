@@ -1,22 +1,25 @@
 import json
 import os
 import tomllib
-import torch 
 
-from addicted_intelligence.baseline import (
-    is_answer_correct,
-    result_on_sample,
-)
-
-from data.load_splits import load_splits
-
+import torch
 from transformers import (
     PreTrainedTokenizerBase,
     Qwen3_5ForConditionalGeneration,
 )
 
+from addicted_intelligence.average_tool_embeddings import (
+    average_tool_embeddings,
+    get_tiktok_minus_others_vector,
+    get_tiktok_vector,
+)
+from addicted_intelligence.baseline import (
+    is_answer_correct,
+    result_on_sample,
+)
 from addicted_intelligence.run_prompt import (
     load_model,
+    run_prompt,
     run_prompt_with_steering,
 )
 from data.dataset import DatasetItem
@@ -44,6 +47,7 @@ def run_split(
     condition_prompt: str,
     steering_vector: torch.Tensor,
     steering_strength: float,
+    layer_index: int,
     max_steps: int = 5,
 ) -> list[dict]:
     results = []
@@ -56,6 +60,7 @@ def run_split(
             max_steps=max_steps,
             steering_strength=steering_strength,
             steering_vector=steering_vector,
+            layer_index=layer_index,
         )
         answer_correct = is_answer_correct(
             final_answer=final_answer,
@@ -72,6 +77,8 @@ def run_split(
                 **sample._asdict(),
                 'condition': condition,
                 'condition_prompt': condition_prompt,
+                'steering_strength': steering_strength,
+                'layer_index': layer_index,
                 'called_tool_names': called_tool_names,
                 'final_answer': final_answer,
                 'answer_correct': answer_correct,
@@ -88,6 +95,7 @@ def run_episode_with_steering(
     condition_prompt: str,
     steering_vector: torch.Tensor,
     steering_strength: float,
+    layer_index: int,
     max_steps: int = 5,
 ) -> tuple[list[str], str | None]:
     messages = [
@@ -101,14 +109,22 @@ def run_episode_with_steering(
         },
     ]
     called_tool_names = []
-    for _ in range(max_steps):
-        model_response = run_prompt_with_steering(
-            model=model,
-            tokenizer=tokenizer,
-            messages=messages,
-            steering_strength=steering_strength,
-            steering_vector=steering_vector,
-        )
+    for step_index in range(max_steps):
+        if step_index == 0:
+            model_response = run_prompt_with_steering(
+                model=model,
+                tokenizer=tokenizer,
+                messages=messages,
+                steering_strength=steering_strength,
+                steering_vector=steering_vector,
+                layer_index=layer_index,
+            )
+        else:
+            model_response = run_prompt(
+                model=model,
+                tokenizer=tokenizer,
+                messages=messages,
+            )
 
         tool_calls = model_response.get('tool_calls', [])
         if not tool_calls:
@@ -132,8 +148,14 @@ def run_episode_with_steering(
 
 
 if __name__ == '__main__':
-    with open('configs/collect_tool_embeddings.toml', 'rb') as config_file:
+    with open('configs/steering.toml', 'rb') as config_file:
         config = tomllib.load(config_file)
+
+    tool_embeddings = average_tool_embeddings(episodes_path=config['embeddings_log_path'])
+    vector_functions = {
+        'tiktok': get_tiktok_vector,
+        'tiktok_minus_others': get_tiktok_minus_others_vector,
+    }
 
     model, tokenizer = load_model(
         model_id=config['model_id'],
@@ -142,21 +164,21 @@ if __name__ == '__main__':
     split_items = load_splits()[config['split_name']]
 
     os.makedirs(os.path.dirname(config['episodes_path']), exist_ok=True)
-    os.makedirs(os.path.dirname(config['output_dir']), exist_ok=True)
-
-    # count vector depending on config
 
     with open(config['episodes_path'], 'w', encoding='utf-8') as results_file:
-        for condition, condition_prompt in config['condition_prompts'].items():
-            start_embedding_path = config['episodes_path']
+        for condition in config['vector_methods']:
+            steering_vector = vector_functions[condition](tool_embeddings=tool_embeddings)
+            steering_vector = steering_vector / steering_vector.norm()
             for result in run_split(
                 samples=split_items,
                 model=model,
                 tokenizer=tokenizer,
                 condition=condition,
-                condition_prompt=condition_prompt,
+                condition_prompt=config['condition_prompt'],
                 max_steps=config['max_steps'],
-                steering_strength=,
-                steering_vector=,
+                steering_strength=config['steering_strength'],
+                steering_vector=steering_vector,
+                layer_index=config['layer_index'],
             ):
+                result['embeddings_log_path'] = config['embeddings_log_path']
                 results_file.write(json.dumps(result, ensure_ascii=False) + '\n')
