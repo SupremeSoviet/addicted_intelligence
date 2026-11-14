@@ -1,0 +1,8 @@
+model_id = "Qwen/Qwen3.5-4B"
+revision = "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+split_name = "val"
+max_steps = 5
+episodes_path = "artifacts/steering_probe/baseline.jsonl"
+
+[condition_prompts]
+none = ""

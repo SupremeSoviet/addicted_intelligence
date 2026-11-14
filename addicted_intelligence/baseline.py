@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import tomllib
 
 from transformers import (
@@ -149,7 +150,8 @@ def run_split(
 
 
 if __name__ == '__main__':
-    with open('configs/baseline.toml', 'rb') as config_file:
+    config_path = sys.argv[1] if len(sys.argv) > 1 else 'configs/baseline.toml'
+    with open(config_path, 'rb') as config_file:
         config = tomllib.load(config_file)
 
     model, tokenizer = load_model(

@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import tomllib
 
 import torch
@@ -10,6 +11,7 @@ from transformers import (
 
 from addicted_intelligence.average_tool_embeddings import (
     average_tool_embeddings,
+    get_random_vector,
     get_tiktok_minus_others_vector,
     get_tiktok_vector,
 )
@@ -148,11 +150,12 @@ def run_episode_with_steering(
 
 
 if __name__ == '__main__':
-    with open('configs/steering.toml', 'rb') as config_file:
+    config_path = sys.argv[1] if len(sys.argv) > 1 else 'configs/steering.toml'
+    with open(config_path, 'rb') as config_file:
         config = tomllib.load(config_file)
 
     tool_embeddings = average_tool_embeddings(episodes_path=config['embeddings_log_path'])
-    vector_functions = {
+    get_steering_vector_function = {
         'tiktok': get_tiktok_vector,
         'tiktok_minus_others': get_tiktok_minus_others_vector,
     }
@@ -167,7 +170,13 @@ if __name__ == '__main__':
 
     with open(config['episodes_path'], 'w', encoding='utf-8') as results_file:
         for condition in config['vector_methods']:
-            steering_vector = vector_functions[condition](tool_embeddings=tool_embeddings)
+            if condition == 'random':
+                steering_vector = get_random_vector(
+                    tool_embeddings=tool_embeddings,
+                    seed=config['seed'],
+                )
+            else:
+                steering_vector = get_steering_vector_function[condition](tool_embeddings=tool_embeddings)
             steering_vector = steering_vector / steering_vector.norm()
             for result in run_split(
                 samples=split_items,
@@ -181,4 +190,6 @@ if __name__ == '__main__':
                 layer_index=config['layer_index'],
             ):
                 result['embeddings_log_path'] = config['embeddings_log_path']
+                if condition == 'random':
+                    result['seed'] = config['seed']
                 results_file.write(json.dumps(result, ensure_ascii=False) + '\n')

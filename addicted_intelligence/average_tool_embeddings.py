@@ -28,6 +28,17 @@ def get_tiktok_vector(
     return tool_embeddings['watch_tiktok']
 
 
+def get_random_vector(
+    tool_embeddings: dict[str, torch.Tensor],
+    seed: int = 42,
+) -> torch.Tensor:
+    generator = torch.Generator().manual_seed(seed)
+    return torch.randn(
+        size=tool_embeddings['watch_tiktok'].shape,
+        generator=generator,
+    )
+
+
 def get_tiktok_minus_others_vector(
     tool_embeddings: dict[str, torch.Tensor],
 ) -> torch.Tensor:
