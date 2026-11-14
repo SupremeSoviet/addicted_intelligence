@@ -94,6 +94,7 @@ def run_prompt_with_steering(
         _module_inputs: tuple[torch.Tensor, ...],
         layer_hidden_states: torch.Tensor,
     ) -> torch.Tensor:
+        hook_handle.remove()
         layer_hidden_states = layer_hidden_states.clone()
         layer_hidden_states[:, -1, :] += steering_strength * steering_vector.to(
             device=layer_hidden_states.device,
@@ -103,6 +104,38 @@ def run_prompt_with_steering(
 
     transformer_layer = model.model.language_model.layers[layer_index]
     hook_handle = transformer_layer.register_forward_hook(_add_steering_vector)
+    try:
+        return run_prompt(
+            model=model,
+            tokenizer=tokenizer,
+            messages=messages,
+        )
+    finally:
+        hook_handle.remove()
+
+
+@torch.inference_mode()
+def run_prompt_and_write_embedding(
+    model: Qwen3_5ForConditionalGeneration,
+    tokenizer: PreTrainedTokenizerBase,
+    messages: list[dict],
+    embedding_path: str,
+    layer_index: int = 12,
+) -> dict:
+
+    def _write_embedding(
+        _module: torch.nn.Module,
+        _module_inputs: tuple[torch.Tensor, ...],
+        layer_hidden_states: torch.Tensor,
+    ) -> None:
+        hook_handle.remove()
+        torch.save(
+            obj=layer_hidden_states[0, -1, :].cpu().clone(),
+            f=embedding_path,
+        )
+
+    transformer_layer = model.model.language_model.layers[layer_index]
+    hook_handle = transformer_layer.register_forward_hook(_write_embedding)
     try:
         return run_prompt(
             model=model,
