@@ -1,0 +1,10 @@
+model_id = "Qwen/Qwen3.5-4B"
+revision = "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+split_name = "train"
+max_steps = 5
+layer_index = 12
+output_dir = "artifacts/embeddings/train"
+episodes_path = "artifacts/train"
+
+[condition_prompts]
+none = ""
