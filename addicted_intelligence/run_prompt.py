@@ -18,12 +18,20 @@ from data.tool_schemas import (
 def load_model(
     model_id: str = 'Qwen/Qwen3.5-4B',
     revision: str = '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+    tool_call_prefix: str = '',
 ) -> tuple[Qwen3_5ForConditionalGeneration, PreTrainedTokenizerBase]:
     model_dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=model_id,
         revision=revision,
     )
+    if tool_call_prefix:
+        # префикс только перед первым ответом, чтобы после инструмента модель могла ответить обычным текстом
+        tokenizer.chat_template += (
+            '{% if add_generation_prompt and messages[-1]["role"] == "user" %}'
+            + tool_call_prefix
+            + '{% endif %}'
+        )
     model = Qwen3_5ForConditionalGeneration.from_pretrained(
         pretrained_model_name_or_path=model_id,
         revision=revision,

@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import tomllib
 
 from addicted_intelligence.baseline import (
@@ -43,6 +44,7 @@ def run_split(
     condition_prompt: str,
     embedding_path: str,
     max_steps: int = 5,
+    layer_index: int = 12,
 ) -> list[dict]:
     results = []
     for index, sample in enumerate(samples):
@@ -54,6 +56,7 @@ def run_split(
             condition_prompt=condition_prompt,
             max_steps=max_steps,
             embedding_path=embedding_path_for_index,
+            layer_index=layer_index,
         )
         answer_correct = is_answer_correct(
             final_answer=final_answer,
@@ -75,6 +78,7 @@ def run_split(
                 'answer_correct': answer_correct,
                 'outcome': sample_result,
                 'embedding_path': embedding_path_for_index,
+                'layer_index': layer_index,
             }
         )
     return results
@@ -87,6 +91,7 @@ def run_episode_and_write_embeddings(
     condition_prompt: str,
     embedding_path: str | None,
     max_steps: int = 5,
+    layer_index: int = 12,
 ) -> tuple[list[str], str | None]:
     messages = [
         {
@@ -107,36 +112,37 @@ def run_episode_and_write_embeddings(
             tokenizer=tokenizer,
             messages=messages,
             embedding_path=embedding_path,
+            layer_index=layer_index,
         )
 
         tool_calls = model_response.get('tool_calls', [])
         if not tool_calls:
             return called_tool_names, model_response.get('content', '')
 
-        tool_call = tool_calls[0]
-        tool_name = tool_call['function']['name']
-        arguments = tool_call['function']['arguments']
-        tool_result = tools_by_name[tool_name](**arguments)
-        called_tool_names.append(tool_name)
-        messages.extend(
-            [
-                model_response,
+        messages.append(model_response)
+        for tool_call in tool_calls:
+            tool_name = tool_call['function']['name']
+            arguments = tool_call['function']['arguments']
+            tool_result = tools_by_name[tool_name](**arguments)
+            called_tool_names.append(tool_name)
+            messages.append(
                 {
                     'role': 'tool',
                     'content': tool_result,
-                },
-            ]
-        )
+                }
+            )
     return called_tool_names, None
 
 
 if __name__ == '__main__':
-    with open('configs/collect_tool_embeddings.toml', 'rb') as config_file:
+    config_path = sys.argv[1] if len(sys.argv) > 1 else 'configs/collect_tool_embeddings.toml'
+    with open(config_path, 'rb') as config_file:
         config = tomllib.load(config_file)
 
     model, tokenizer = load_model(
         model_id=config['model_id'],
         revision=config['revision'],
+        tool_call_prefix=config.get('tool_call_prefix', ''),
     )
     split_items = load_splits()[config['split_name']]
 
@@ -154,5 +160,7 @@ if __name__ == '__main__':
                 condition_prompt=condition_prompt,
                 max_steps=config['max_steps'],
                 embedding_path=config['output_dir'],
+                layer_index=config['layer_index'],
             ):
+                result['tool_call_prefix'] = config.get('tool_call_prefix', '')
                 results_file.write(json.dumps(result, ensure_ascii=False) + '\n')

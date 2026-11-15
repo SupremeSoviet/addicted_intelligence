@@ -58,20 +58,18 @@ def run_episode(
         if not tool_calls:
             return called_tool_names, model_response.get('content', '')
 
-        tool_call = tool_calls[0]
-        tool_name = tool_call['function']['name']
-        arguments = tool_call['function']['arguments']
-        tool_result = tools_by_name[tool_name](**arguments)
-        called_tool_names.append(tool_name)
-        messages.extend(
-            [
-                model_response,
+        messages.append(model_response)
+        for tool_call in tool_calls:
+            tool_name = tool_call['function']['name']
+            arguments = tool_call['function']['arguments']
+            tool_result = tools_by_name[tool_name](**arguments)
+            called_tool_names.append(tool_name)
+            messages.append(
                 {
                     'role': 'tool',
                     'content': tool_result,
-                },
-            ]
-        )
+                }
+            )
     return called_tool_names, None
 
 
@@ -157,6 +155,7 @@ if __name__ == '__main__':
     model, tokenizer = load_model(
         model_id=config['model_id'],
         revision=config['revision'],
+        tool_call_prefix=config.get('tool_call_prefix', ''),
     )
     split_items = load_splits()[config['split_name']]
 
@@ -172,4 +171,5 @@ if __name__ == '__main__':
                 condition_prompt=condition_prompt,
                 max_steps=config['max_steps'],
             ):
+                result['tool_call_prefix'] = config.get('tool_call_prefix', '')
                 results_file.write(json.dumps(result, ensure_ascii=False) + '\n')
