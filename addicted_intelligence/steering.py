@@ -11,6 +11,7 @@ from transformers import (
 
 from addicted_intelligence.average_tool_embeddings import (
     average_tool_embeddings,
+    get_negative_others_vector,
     get_random_vector,
     get_tiktok_minus_others_vector,
     get_tiktok_vector,
@@ -154,6 +155,7 @@ if __name__ == '__main__':
 
     tool_embeddings = average_tool_embeddings(episodes_path=config['embeddings_log_path'])
     get_steering_vector_function = {
+        'negative_others': get_negative_others_vector,
         'tiktok': get_tiktok_vector,
         'tiktok_minus_others': get_tiktok_minus_others_vector,
     }

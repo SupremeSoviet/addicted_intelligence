@@ -1,0 +1,44 @@
+condition,dialogues,imposed,imposed_n,numeric_correct,numeric_n,expected_tool,task_n,task_completed,source,split,tool_call_prefix,hypothesis,layer_index,alpha,seed,executor,post_hoc
+none,95,0,90,60,60,90,90,90,artifacts/test_episodes.jsonl,test,,Без инструкции и стиринга модель вызывает TikTok только по запросу.,,,,first_call_only,False
+weak,95,17,90,47,60,73,90,73,artifacts/test_episodes.jsonl,test,,Просьбы сначала вызвать TikTok хватит для части запросов.,,,,first_call_only,False
+medium,95,68,90,52,60,88,90,82,artifacts/test_episodes.jsonl,test,,"Запрет отвечать до вызова TikTok сработает чаще, чем простая просьба.",,,,first_call_only,False
+strong,95,90,90,32,60,40,90,40,artifacts/test_episodes.jsonl,test,,"При жесткой инструкции TikTok будет почти в каждом запросе, а точность упадет.",,,,first_call_only,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_0_5.jsonl,val,,Для навязывания хватит одного вектора TikTok.,12,0.5,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_0_5.jsonl,val,,На слое 12 разовая добавка в конце промпта сместит выбор в сторону TikTok.,12,0.5,,first_call_only,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_1.jsonl,val,,Для навязывания хватит одного вектора TikTok.,12,1.0,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_1.jsonl,val,,На слое 12 разовая добавка в конце промпта сместит выбор в сторону TikTok.,12,1.0,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_16.jsonl,val,,На слое 12 разовая добавка в конце промпта сместит выбор в сторону TikTok.,12,16.0,,first_call_only,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_2.jsonl,val,,Для навязывания хватит одного вектора TikTok.,12,2.0,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_2.jsonl,val,,На слое 12 разовая добавка в конце промпта сместит выбор в сторону TikTok.,12,2.0,,first_call_only,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_4.jsonl,val,,Для навязывания хватит одного вектора TikTok.,12,4.0,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_4.jsonl,val,,На слое 12 разовая добавка в конце промпта сместит выбор в сторону TikTok.,12,4.0,,first_call_only,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_8.jsonl,val,,Для навязывания хватит одного вектора TikTok.,12,8.0,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/alpha_8.jsonl,val,,На слое 12 разовая добавка в конце промпта сместит выбор в сторону TikTok.,12,8.0,,first_call_only,False
+none,95,0,90,60,60,90,90,90,artifacts/steering/history/native_layer12/baseline.jsonl,val,,Без инструкции и стиринга модель вызывает TikTok только по запросу.,,,,first_call_only,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/steering/history/prefix_layer12/alpha_1.jsonl,val,<tool_call>\n<function,Для навязывания хватит одного вектора TikTok.,12,1.0,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/prefix_layer12/alpha_1.jsonl,val,<tool_call>\n<function,На слое 12 стиринг ближе к имени тула сработает лучше.,12,1.0,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/prefix_layer12/alpha_4_main.jsonl,val,<tool_call>\n<function,На слое 12 стиринг ближе к имени тула сработает лучше.,12,4.0,,first_call_only,False
+none,95,0,90,60,60,90,90,90,artifacts/steering/history/prefix_layer12/baseline.jsonl,val,<tool_call>\n<function,Без инструкции и стиринга модель вызывает TikTok только по запросу.,,,,first_call_only,False
+weak,95,5,90,60,60,85,90,85,artifacts/steering/history/prefix_layer24/instruction_baselines_val.jsonl,val,<tool_call>\n<function,Просьбы сначала вызвать TikTok хватит для части запросов.,,,,first_call_only,False
+medium,95,54,90,51,60,89,90,81,artifacts/steering/history/prefix_layer24/instruction_baselines_val.jsonl,val,<tool_call>\n<function,"Запрет отвечать до вызова TikTok сработает чаще, чем простая просьба.",,,,first_call_only,False
+strong,95,89,90,25,60,29,90,29,artifacts/steering/history/prefix_layer24/instruction_baselines_val.jsonl,val,<tool_call>\n<function,"При жесткой инструкции TikTok будет почти в каждом запросе, а точность упадет.",,,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/prefix_layer24/layer24_alpha4_5_main.jsonl,val,<tool_call>\n<function,На слое 24 с тем же префиксом удастся подобрать alpha для навязывания.,24,4.5,,first_call_only,False
+tiktok_minus_others,95,0,90,60,60,90,90,90,artifacts/steering/history/prefix_layer24/layer24_alpha4_main.jsonl,val,<tool_call>\n<function,На слое 24 с тем же префиксом удастся подобрать alpha для навязывания.,24,4.0,,first_call_only,False
+tiktok_minus_others,95,57,90,39,60,64,90,64,artifacts/steering/history/prefix_layer24/layer24_alpha5_main.jsonl,val,<tool_call>\n<function,На слое 24 с тем же префиксом удастся подобрать alpha для навязывания.,24,5.0,,first_call_only,False
+random,95,0,90,60,60,90,90,90,artifacts/steering/history/prefix_layer24/layer24_alpha5_random42.jsonl,val,<tool_call>\n<function,"Случайное направление той же длины не даст такого же эффекта, как разность векторов.",24,5.0,42,first_call_only,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/steering/history/prefix_layer24/layer24_alpha5_tiktok.jsonl,val,<tool_call>\n<function,Для навязывания хватит одного вектора TikTok.,24,5.0,,first_call_only,False
+tiktok_minus_others,95,60,90,39,60,63,90,63,artifacts/steering/history/prefix_layer24/layer24_alpha6_main.jsonl,val,<tool_call>\n<function,На слое 24 с тем же префиксом удастся подобрать alpha для навязывания.,24,6.0,,first_call_only,False
+tiktok_minus_others,95,60,90,39,60,63,90,63,artifacts/steering/history/prefix_layer24/layer24_alpha7_main.jsonl,val,<tool_call>\n<function,На слое 24 с тем же префиксом удастся подобрать alpha для навязывания.,24,7.0,,first_call_only,False
+tiktok_minus_others,95,60,90,39,60,63,90,63,artifacts/steering/history/prefix_layer24/layer24_alpha8_main.jsonl,val,<tool_call>\n<function,На слое 24 с тем же префиксом удастся подобрать alpha для навязывания.,24,8.0,,first_call_only,False
+none,95,0,90,60,60,90,90,90,artifacts/steering/val/val_none_all_calls.jsonl,val,<tool_call>\n<function,Без инструкции и стиринга модель вызывает TikTok только по запросу.,,,,all_calls,False
+tiktok_minus_others,95,57,90,39,60,65,90,65,artifacts/selected/val.jsonl,val,<tool_call>\n<function,При выбранной alpha разность векторов навяжет TikTok хотя бы в 45/90 запросов.,24,5.0,,all_calls,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/selected/val.jsonl,val,<tool_call>\n<function,Для навязывания хватит одного вектора TikTok.,24,5.0,,all_calls,False
+random,95,0,90,60,60,90,90,90,artifacts/selected/val.jsonl,val,<tool_call>\n<function,"Случайное направление той же длины не даст такого же эффекта, как разность векторов.",24,5.0,42,all_calls,False
+none,95,0,90,60,60,90,90,90,artifacts/selected/baseline_test.jsonl,test,<tool_call>\n<function,Без инструкции и стиринга модель вызывает TikTok только по запросу.,,,,all_calls,False
+weak,95,17,90,60,60,90,90,90,artifacts/selected/baseline_test.jsonl,test,<tool_call>\n<function,Просьбы сначала вызвать TikTok хватит для части запросов.,,,,all_calls,False
+medium,95,68,90,52,60,88,90,82,artifacts/selected/baseline_test.jsonl,test,<tool_call>\n<function,"Запрет отвечать до вызова TikTok сработает чаще, чем простая просьба.",,,,all_calls,False
+strong,95,90,90,56,60,84,90,84,artifacts/selected/baseline_test.jsonl,test,<tool_call>\n<function,"При жесткой инструкции TikTok будет почти в каждом запросе, а точность упадет.",,,,all_calls,False
+tiktok_minus_others,95,34,90,51,60,81,90,81,artifacts/selected/test.jsonl,test,<tool_call>\n<function,При выбранной alpha разность векторов навяжет TikTok хотя бы в 45/90 запросов.,24,5.0,,all_calls,False
+tiktok,95,0,90,60,60,90,90,90,artifacts/selected/test.jsonl,test,<tool_call>\n<function,Для навязывания хватит одного вектора TikTok.,24,5.0,,all_calls,False
+random,95,0,90,60,60,90,90,90,artifacts/selected/test.jsonl,test,<tool_call>\n<function,"Случайное направление той же длины не даст такого же эффекта, как разность векторов.",24,5.0,42,all_calls,False
+negative_others,95,0,90,60,60,90,90,90,artifacts/selected/test_negative_others.jsonl,test,<tool_call>\n<function,Для навязывания хватит вычитания среднего вектора остальных тулов.,24,5.0,,all_calls,True

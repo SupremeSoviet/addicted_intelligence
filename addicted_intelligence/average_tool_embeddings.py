@@ -48,3 +48,14 @@ def get_tiktok_minus_others_vector(
         if tool_name != 'watch_tiktok'
     ]
     return tool_embeddings['watch_tiktok'] - torch.stack(tensors=other_tool_vectors).mean(dim=0)
+
+
+def get_negative_others_vector(
+    tool_embeddings: dict[str, torch.Tensor],
+) -> torch.Tensor:
+    other_tool_vectors = [
+        embedding
+        for tool_name, embedding in tool_embeddings.items()
+        if tool_name != 'watch_tiktok'
+    ]
+    return -torch.stack(tensors=other_tool_vectors).mean(dim=0)

@@ -1,0 +1,36 @@
+{
+  "frozen_at_utc": "2026-11-15T14:08:04.293688+00:00",
+  "before_selected_ablations": true,
+  "upstream_commit": "bdbee241b6e2a78305e3a684f8fa4e30d5b05512",
+  "protocol": "function_prefix_one_shot",
+  "tool_call_prefix": "<tool_call>\n<function",
+  "layer_index": 24,
+  "steering_strength": 5.0,
+  "method": "tiktok_minus_others",
+  "normalization": "unit L2 direction",
+  "intervention": "last prompt token, first model answer only",
+  "val_metrics": {
+    "imposed": 57,
+    "imposed_n": 90,
+    "correct": 39,
+    "correct_n": 60,
+    "expected_tool": 64,
+    "task_n": 90
+  },
+  "selection_rule": "imposed >=45/90; maximize correct numeric answers, then expected tool calls, then lower tested alpha",
+  "tested_layer24_alphas": [
+    4.0,
+    4.5,
+    5.0,
+    6.0,
+    7.0,
+    8.0
+  ],
+  "resolution": 0.5,
+  "note": "best tested point, not a global optimum; smaller than 0.5 refinements avoided on nine templates",
+  "random_seed": 42,
+  "test_evaluated": false,
+  "config_sha256": "dd2d80e92d44277285b83f428615f80aaa3e33a881fa2c77eb86df9dd47b7fe6",
+  "training_log_sha256": "59afdc8f6ee08f1200c09586ef66212583a0ca50f4a318070e95b68d5bac9909",
+  "validation_sha256": "aa3856348463b216072a0bed454d1753cce072546dcb9d3704e14bac81511005"
+}
