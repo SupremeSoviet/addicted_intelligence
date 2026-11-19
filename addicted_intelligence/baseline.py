@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import tomllib
 
 from transformers import (
@@ -57,20 +58,18 @@ def run_episode(
         if not tool_calls:
             return called_tool_names, model_response.get('content', '')
 
-        tool_call = tool_calls[0]
-        tool_name = tool_call['function']['name']
-        arguments = tool_call['function']['arguments']
-        tool_result = tools_by_name[tool_name](**arguments)
-        called_tool_names.append(tool_name)
-        messages.extend(
-            [
-                model_response,
+        messages.append(model_response)
+        for tool_call in tool_calls:
+            tool_name = tool_call['function']['name']
+            arguments = tool_call['function']['arguments']
+            tool_result = tools_by_name[tool_name](**arguments)
+            called_tool_names.append(tool_name)
+            messages.append(
                 {
                     'role': 'tool',
                     'content': tool_result,
-                },
-            ]
-        )
+                }
+            )
     return called_tool_names, None
 
 
@@ -149,12 +148,14 @@ def run_split(
 
 
 if __name__ == '__main__':
-    with open('configs/baseline.toml', 'rb') as config_file:
+    config_path = sys.argv[1] if len(sys.argv) > 1 else 'configs/baseline.toml'
+    with open(config_path, 'rb') as config_file:
         config = tomllib.load(config_file)
 
     model, tokenizer = load_model(
         model_id=config['model_id'],
         revision=config['revision'],
+        tool_call_prefix=config.get('tool_call_prefix', ''),
     )
     split_items = load_splits()[config['split_name']]
 
@@ -170,4 +171,5 @@ if __name__ == '__main__':
                 condition_prompt=condition_prompt,
                 max_steps=config['max_steps'],
             ):
+                result['tool_call_prefix'] = config.get('tool_call_prefix', '')
                 results_file.write(json.dumps(result, ensure_ascii=False) + '\n')

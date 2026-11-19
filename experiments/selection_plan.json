@@ -1,0 +1,29 @@
+{
+  "source_commit": "bdbee241b6e2a78305e3a684f8fa4e30d5b05512",
+  "remote_directory": "/tmp/hw2-tuning-bdbee24.QHuzsh",
+  "split": "val",
+  "all_samples": 95,
+  "unnecessary_tiktok_denominator": 90,
+  "numeric_accuracy_denominator": 60,
+  "layer_index": 12,
+  "initial_alphas": [
+    0.5,
+    1.0,
+    2.0,
+    4.0
+  ],
+  "primary_method": "tiktok_minus_others",
+  "selection": {
+    "minimum_imposed_calls": 45,
+    "maximize": [
+      "correct_numeric_answers",
+      "expected_tool_calls"
+    ],
+    "tie_break": "smaller_alpha",
+    "note": "retain all tradeoffs; threshold is the >=50% hypothesis in README"
+  },
+  "adaptation": "expand/refine alpha only on full val when current grid does not resolve the target or optimum; stop escalating when failure or accuracy collapse makes further alpha unjustified",
+  "ablations": "tiktok-only and random seed42 at the selected primary alpha; all directions normalized to unit L2",
+  "test": "not used during tuning",
+  "authorization": "user explicitly authorized the initial series and further tuning as needed"
+}

@@ -18,12 +18,20 @@ from data.tool_schemas import (
 def load_model(
     model_id: str = 'Qwen/Qwen3.5-4B',
     revision: str = '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a',
+    tool_call_prefix: str = '',
 ) -> tuple[Qwen3_5ForConditionalGeneration, PreTrainedTokenizerBase]:
     model_dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=model_id,
         revision=revision,
     )
+    if tool_call_prefix:
+        # префикс только перед первым ответом, чтобы после инструмента модель могла ответить обычным текстом
+        tokenizer.chat_template += (
+            '{% if add_generation_prompt and messages[-1]["role"] == "user" %}'
+            + tool_call_prefix
+            + '{% endif %}'
+        )
     model = Qwen3_5ForConditionalGeneration.from_pretrained(
         pretrained_model_name_or_path=model_id,
         revision=revision,
@@ -94,6 +102,7 @@ def run_prompt_with_steering(
         _module_inputs: tuple[torch.Tensor, ...],
         layer_hidden_states: torch.Tensor,
     ) -> torch.Tensor:
+        hook_handle.remove()
         layer_hidden_states = layer_hidden_states.clone()
         layer_hidden_states[:, -1, :] += steering_strength * steering_vector.to(
             device=layer_hidden_states.device,
@@ -103,6 +112,39 @@ def run_prompt_with_steering(
 
     transformer_layer = model.model.language_model.layers[layer_index]
     hook_handle = transformer_layer.register_forward_hook(_add_steering_vector)
+    try:
+        return run_prompt(
+            model=model,
+            tokenizer=tokenizer,
+            messages=messages,
+        )
+    finally:
+        hook_handle.remove()
+
+
+@torch.inference_mode()
+def run_prompt_and_write_embedding(
+    model: Qwen3_5ForConditionalGeneration,
+    tokenizer: PreTrainedTokenizerBase,
+    messages: list[dict],
+    embedding_path: str | None,
+    layer_index: int = 12,
+) -> dict:
+
+    def _write_embedding(
+        _module: torch.nn.Module,
+        _module_inputs: tuple[torch.Tensor, ...],
+        layer_hidden_states: torch.Tensor,
+    ) -> None:
+        hook_handle.remove()
+        if embedding_path:
+            torch.save(
+                obj=layer_hidden_states[0, -1, :].cpu().clone(),
+                f=embedding_path,
+            )
+
+    transformer_layer = model.model.language_model.layers[layer_index]
+    hook_handle = transformer_layer.register_forward_hook(_write_embedding)
     try:
         return run_prompt(
             model=model,

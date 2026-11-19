@@ -1,0 +1,12 @@
+model_id = "Qwen/Qwen3.5-4B"
+revision = "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+split_name = "val"
+max_steps = 5
+layer_index = 24
+condition_prompt = ""
+steering_strength = 5.0
+episodes_path = "artifacts/selected/val.jsonl"
+embeddings_log_path = "artifacts/train_layer24"
+vector_methods = ["tiktok_minus_others", "tiktok", "random"]
+seed = 42
+tool_call_prefix = "<tool_call>\n<function"
